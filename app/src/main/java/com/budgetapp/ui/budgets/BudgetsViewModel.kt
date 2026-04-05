@@ -11,6 +11,7 @@ import com.budgetapp.util.DateUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -58,7 +59,12 @@ class BudgetsViewModel @Inject constructor(
         val (start, end) = DateUtils.getMonthStartEnd(month, year)
 
         viewModelScope.launch {
-            budgetRepository.getBudgetsForMonth(month, year).collect { budgets ->
+            // Combine budgets with all transactions so spending recalculates
+            // whenever a new transaction is inserted (Plaid sync, manual, notification)
+            combine(
+                budgetRepository.getBudgetsForMonth(month, year),
+                transactionRepository.getAllTransactions()
+            ) { budgets, _ -> budgets }.collect { budgets ->
                 val items = budgets.mapNotNull { budget ->
                     val category = categoryDao.getCategoryById(budget.categoryId) ?: return@mapNotNull null
                     val spent = transactionRepository.getSpendingByCategory(budget.categoryId, start, end).first() ?: 0.0

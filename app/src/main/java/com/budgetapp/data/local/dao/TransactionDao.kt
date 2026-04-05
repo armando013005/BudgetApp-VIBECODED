@@ -48,4 +48,7 @@ interface TransactionDao {
 
     @Query("SELECT plaidTransactionId FROM `transactions` WHERE plaidTransactionId IS NOT NULL")
     suspend fun getAllPlaidTransactionIds(): List<String>
+
+    @Query("SELECT COALESCE(SUM(amount), 0.0) FROM `transactions` WHERE isManual = 1")
+    fun getManualTransactionSum(): Flow<Double>
 }

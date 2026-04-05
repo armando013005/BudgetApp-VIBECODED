@@ -46,7 +46,10 @@ fun AuthScreen(
     }
 
     LaunchedEffect(uiState.navigateToOnboarding) {
-        if (uiState.navigateToOnboarding) onFirstTimeSetup()
+        if (uiState.navigateToOnboarding) {
+            onFirstTimeSetup()
+            viewModel.onNavigatedToOnboarding()
+        }
     }
 
     if (uiState.isLoading && !uiState.isAuthenticated) {

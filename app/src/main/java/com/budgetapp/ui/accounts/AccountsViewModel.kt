@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.budgetapp.data.local.entity.AccountEntity
 import com.budgetapp.data.repository.AccountRepository
+import com.budgetapp.data.repository.PlaidRepository
+import com.budgetapp.security.CryptoManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,12 +14,16 @@ import javax.inject.Inject
 
 data class AccountsUiState(
     val accounts: List<AccountEntity> = emptyList(),
-    val totalBalance: Double = 0.0
+    val totalBalance: Double = 0.0,
+    val isSyncing: Boolean = false,
+    val syncMessage: String? = null
 )
 
 @HiltViewModel
 class AccountsViewModel @Inject constructor(
-    private val accountRepository: AccountRepository
+    private val accountRepository: AccountRepository,
+    private val plaidRepository: PlaidRepository,
+    private val cryptoManager: CryptoManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AccountsUiState())
@@ -26,7 +32,7 @@ class AccountsViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             accountRepository.getAllAccounts().collect { accounts ->
-                _uiState.value = AccountsUiState(
+                _uiState.value = _uiState.value.copy(
                     accounts = accounts,
                     totalBalance = accounts.sumOf { it.balance }
                 )
@@ -34,15 +40,33 @@ class AccountsViewModel @Inject constructor(
         }
     }
 
-    fun addAccount(name: String, type: String, balance: Double, institution: String?) {
+    fun addAccount(name: String, type: String, balance: Double, institution: String?, plaidAccessToken: String?) {
         viewModelScope.launch {
+            val encryptedToken = plaidAccessToken?.takeIf { it.isNotBlank() }?.let {
+                try { cryptoManager.encryptToBase64(it) } catch (e: Exception) { it }
+            }
             accountRepository.addAccount(
                 AccountEntity(
                     name = name,
                     type = type,
                     balance = balance,
                     institution = institution,
-                    isManual = true
+                    isManual = encryptedToken == null,
+                    plaidAccessToken = encryptedToken
+                )
+            )
+        }
+    }
+
+    fun syncAccount(account: AccountEntity) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isSyncing = true, syncMessage = null)
+            val result = plaidRepository.syncAccount(account)
+            _uiState.value = _uiState.value.copy(
+                isSyncing = false,
+                syncMessage = result.fold(
+                    onSuccess = { count -> if (count > 0) "Synced $count new transactions" else "Already up to date" },
+                    onFailure = { "Sync failed: ${it.message}" }
                 )
             )
         }
@@ -52,5 +76,9 @@ class AccountsViewModel @Inject constructor(
         viewModelScope.launch {
             accountRepository.deleteAccount(account)
         }
+    }
+
+    fun clearMessage() {
+        _uiState.value = _uiState.value.copy(syncMessage = null)
     }
 }

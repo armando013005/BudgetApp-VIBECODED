@@ -11,6 +11,7 @@ coroutines = "1.8.0"
 retrofit = "2.9.0"
 okhttp = "4.12.0"
 jbcrypt = "0.4"
+security-crypto = "1.0.0"
 
 [libraries]
 # Compose BOM
@@ -50,6 +51,7 @@ okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor",
 
 # Security
 jbcrypt = { group = "org.mindrot", name = "jbcrypt", version.ref = "jbcrypt" }
+security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "security-crypto" }
 
 # Core
 core-ktx = { group = "androidx.core", name = "core-ktx", version = "1.12.0" }

@@ -80,6 +80,7 @@ dependencies {
 
     // Security
     implementation(libs.jbcrypt)
+    implementation(libs.security.crypto)
 
     // Core
     implementation(libs.core.ktx)

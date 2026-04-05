@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -16,6 +18,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -40,6 +43,7 @@ fun AddAccountScreen(
     var type by remember { mutableStateOf("CHECKING") }
     var balance by remember { mutableStateOf("") }
     var institution by remember { mutableStateOf("") }
+    var plaidAccessToken by remember { mutableStateOf("") }
     var typeExpanded by remember { mutableStateOf(false) }
 
     val accountTypes = listOf("CHECKING", "SAVINGS", "CREDIT", "CASH")
@@ -61,6 +65,7 @@ fun AddAccountScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .padding(16.dp)
+                .verticalScroll(rememberScrollState())
         ) {
             OutlinedTextField(
                 value = name,
@@ -94,10 +99,7 @@ fun AddAccountScreen(
                     accountTypes.forEach { t ->
                         DropdownMenuItem(
                             text = { Text(t.lowercase().replaceFirstChar { it.uppercase() }) },
-                            onClick = {
-                                type = t
-                                typeExpanded = false
-                            }
+                            onClick = { type = t; typeExpanded = false }
                         )
                     }
                 }
@@ -126,6 +128,23 @@ fun AddAccountScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedTextField(
+                value = plaidAccessToken,
+                onValueChange = { plaidAccessToken = it },
+                label = { Text("Plaid Access Token (optional)") },
+                placeholder = { Text("access-sandbox-xxxxxxxx") },
+                supportingText = {
+                    Text(
+                        "Enter a Plaid access token to enable automatic transaction sync for this account.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
@@ -134,7 +153,8 @@ fun AddAccountScreen(
                         name = name,
                         type = type,
                         balance = balance.toDoubleOrNull() ?: 0.0,
-                        institution = institution.ifBlank { null }
+                        institution = institution.ifBlank { null },
+                        plaidAccessToken = plaidAccessToken.ifBlank { null }
                     )
                     onNavigateBack()
                 },

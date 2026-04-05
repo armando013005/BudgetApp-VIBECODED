@@ -1,6 +1,6 @@
 package com.budgetapp.security
 
-import org.mindrot.jBCrypt.BCrypt
+import org.mindrot.jbcrypt.BCrypt
 import javax.inject.Inject
 import javax.inject.Singleton
 

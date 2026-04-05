@@ -148,3 +148,4 @@ app/src/main/java/com/budgetapp/
 ## License
 
 This project is provided as-is for personal use.
+# BudgetApp-VIBECODED

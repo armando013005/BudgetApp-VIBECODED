@@ -10,7 +10,7 @@ import com.budgetapp.data.local.dao.BudgetDao
 import com.budgetapp.data.local.dao.CategoryDao
 import com.budgetapp.data.local.dao.TransactionDao
 import com.budgetapp.data.local.dao.UserDao
-import com.budgetapp.data.local.entity.CategoryEntity
+import com.budgetapp.data.remote.PlaidService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -20,6 +20,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
 @Module
@@ -61,6 +65,29 @@ object AppModule {
             })
             .build()
     }
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(): OkHttpClient =
+        OkHttpClient.Builder()
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            })
+            .build()
+
+    @Provides
+    @Singleton
+    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit =
+        Retrofit.Builder()
+            .baseUrl("https://sandbox.plaid.com/")
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+    @Provides
+    @Singleton
+    fun providePlaidService(retrofit: Retrofit): PlaidService =
+        retrofit.create(PlaidService::class.java)
 
     @Provides
     fun provideUserDao(db: AppDatabase): UserDao = db.userDao()

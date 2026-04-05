@@ -27,12 +27,14 @@ import com.budgetapp.ui.accounts.AddAccountScreen
 import com.budgetapp.ui.auth.AuthScreen
 import com.budgetapp.ui.budgets.BudgetsScreen
 import com.budgetapp.ui.dashboard.DashboardScreen
+import com.budgetapp.ui.onboarding.TrackingMethodScreen
 import com.budgetapp.ui.settings.SettingsScreen
 import com.budgetapp.ui.transactions.AddTransactionScreen
 import com.budgetapp.ui.transactions.TransactionsScreen
 
 sealed class Screen(val route: String) {
     data object Auth : Screen("auth")
+    data object TrackingMethod : Screen("tracking_method")
     data object Dashboard : Screen("dashboard")
     data object Transactions : Screen("transactions")
     data object AddTransaction : Screen("add_transaction")
@@ -100,6 +102,21 @@ fun NavGraph() {
                     onAuthenticated = {
                         navController.navigate(Screen.Dashboard.route) {
                             popUpTo(Screen.Auth.route) { inclusive = true }
+                        }
+                    },
+                    onFirstTimeSetup = {
+                        navController.navigate(Screen.TrackingMethod.route) {
+                            popUpTo(Screen.Auth.route) { inclusive = true }
+                        }
+                    }
+                )
+            }
+
+            composable(Screen.TrackingMethod.route) {
+                TrackingMethodScreen(
+                    onComplete = {
+                        navController.navigate(Screen.Dashboard.route) {
+                            popUpTo(Screen.TrackingMethod.route) { inclusive = true }
                         }
                     }
                 )

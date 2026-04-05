@@ -36,12 +36,17 @@ import androidx.hilt.navigation.compose.hiltViewModel
 @Composable
 fun AuthScreen(
     onAuthenticated: () -> Unit,
+    onFirstTimeSetup: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(uiState.isAuthenticated) {
         if (uiState.isAuthenticated) onAuthenticated()
+    }
+
+    LaunchedEffect(uiState.navigateToOnboarding) {
+        if (uiState.navigateToOnboarding) onFirstTimeSetup()
     }
 
     if (uiState.isLoading && !uiState.isAuthenticated) {

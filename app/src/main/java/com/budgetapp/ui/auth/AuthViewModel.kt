@@ -13,6 +13,7 @@ data class AuthUiState(
     val isLoading: Boolean = true,
     val isFirstTime: Boolean = true,
     val isAuthenticated: Boolean = false,
+    val navigateToOnboarding: Boolean = false,
     val error: String? = null
 )
 
@@ -50,9 +51,10 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             authRepository.createUser(password)
+            // First time: go to onboarding to pick tracking method
             _uiState.value = _uiState.value.copy(
                 isLoading = false,
-                isAuthenticated = true
+                navigateToOnboarding = true
             )
         }
     }

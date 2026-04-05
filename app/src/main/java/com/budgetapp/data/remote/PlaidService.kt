@@ -56,6 +56,17 @@ data class PlaidTransaction(
     val category: List<String>?
 )
 
+data class SandboxPublicTokenRequest(
+    val client_id: String,
+    val secret: String,
+    val institution_id: String,
+    val initial_products: List<String> = listOf("transactions")
+)
+
+data class SandboxPublicTokenResponse(
+    val public_token: String
+)
+
 interface PlaidService {
     @POST("link/token/create")
     suspend fun createLinkToken(@Body request: PlaidLinkTokenRequest): PlaidLinkTokenResponse
@@ -65,4 +76,7 @@ interface PlaidService {
 
     @POST("transactions/get")
     suspend fun getTransactions(@Body request: PlaidTransactionsRequest): PlaidTransactionsResponse
+
+    @POST("sandbox/public_token/create")
+    suspend fun createSandboxPublicToken(@Body request: SandboxPublicTokenRequest): SandboxPublicTokenResponse
 }

@@ -39,6 +39,9 @@ class TransactionRepository @Inject constructor(
     suspend fun deleteTransaction(transaction: TransactionEntity) =
         transactionDao.deleteTransaction(transaction)
 
+    fun getManualTransactionSum(): Flow<Double> =
+        transactionDao.getManualTransactionSum()
+
     suspend fun getExistingPlaidIds(): List<String> =
         transactionDao.getAllPlaidTransactionIds()
 }

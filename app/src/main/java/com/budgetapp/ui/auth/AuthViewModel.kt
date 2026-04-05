@@ -51,12 +51,23 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             authRepository.createUser(password)
-            // First time: go to onboarding to pick tracking method
-            _uiState.value = _uiState.value.copy(
-                isLoading = false,
-                navigateToOnboarding = true
-            )
+            if (authRepository.isOnboardingComplete()) {
+                // Edge case: prefs survived but DB was cleared — skip onboarding
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    isAuthenticated = true
+                )
+            } else {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    navigateToOnboarding = true
+                )
+            }
         }
+    }
+
+    fun onNavigatedToOnboarding() {
+        _uiState.value = _uiState.value.copy(navigateToOnboarding = false)
     }
 
     fun login(password: String) {

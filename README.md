@@ -59,42 +59,19 @@ After signing up, go to **Keys** in the Plaid dashboard. You'll see:
 
 The **Sandbox** environment is free and unlimited — it uses fake bank data so you can test without connecting a real bank. You do not need to pay anything or apply for production access to try the app.
 
-### 3. Get a Sandbox access token
-
-In Sandbox mode, Plaid provides test credentials you can use directly. Run this in a terminal to get an access token:
-
-```bash
-curl -X POST https://sandbox.plaid.com/sandbox/public_token/create \
-  -H "Content-Type: application/json" \
-  -d '{
-    "client_id": "YOUR_CLIENT_ID",
-    "secret": "YOUR_SANDBOX_SECRET",
-    "institution_id": "ins_109508",
-    "initial_products": ["transactions"]
-  }'
-```
-
-This returns a `public_token`. Exchange it for an `access_token`:
-
-```bash
-curl -X POST https://sandbox.plaid.com/item/public_token/exchange \
-  -H "Content-Type: application/json" \
-  -d '{
-    "client_id": "YOUR_CLIENT_ID",
-    "secret": "YOUR_SANDBOX_SECRET",
-    "public_token": "THE_PUBLIC_TOKEN_FROM_ABOVE"
-  }'
-```
-
-The response contains an `access_token` — this is what the app needs per-account.
-
-### 4. Enter credentials in the app
+### 3. Enter credentials in the app
 
 1. Open the app and go to **Settings**
 2. In the **Plaid Bank Sync** section, enter your **Client ID** and **Sandbox Secret**, then tap **Save**
-3. Go to **Accounts → Add Account**
-4. Enter an account name, set balance, and paste the **Plaid Access Token** from step 3
-5. The app will now sync transactions on every app open or manual refresh
+
+### 4. Connect a sandbox bank account
+
+1. Go to **Accounts → Add Account**
+2. Give the account a name and select a type
+3. Tap **"Connect Sandbox Bank"** — the app automatically generates a sandbox token and connects a test bank account (no curl commands needed)
+4. Transactions and balance will be pulled from Plaid immediately
+
+**Advanced**: If you already have an access token (e.g. from the Plaid quickstart), tap "Advanced: Enter token manually" to paste it directly.
 
 ### 5. Sync
 

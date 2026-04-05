@@ -12,6 +12,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -50,13 +51,16 @@ class DashboardViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 accountRepository.getTotalBalance(),
+                transactionRepository.getManualTransactionSum(),
                 transactionRepository.getTotalSpending(start, end),
                 transactionRepository.getRecentTransactions(5),
                 categoryDao.getAllCategories()
-            ) { balance, spending, recent, categories ->
+            ) { accountBalance, manualTxSum, spending, recent, categories ->
                 val categoryMap = categories.associateBy { it.id }
+                // Total balance = Plaid-reported account balances + manual transaction adjustments
+                val totalBalance = (accountBalance ?: 0.0) + manualTxSum
                 DashboardUiState(
-                    totalBalance = balance ?: 0.0,
+                    totalBalance = totalBalance,
                     monthlySpending = spending ?: 0.0,
                     recentTransactions = recent,
                     categories = categoryMap
@@ -66,13 +70,14 @@ class DashboardViewModel @Inject constructor(
             }
         }
 
-        // Load category spending separately
+        // Load category spending separately — reacts to transaction changes
         viewModelScope.launch {
-            categoryDao.getAllCategories().collect { categories ->
+            combine(
+                categoryDao.getAllCategories(),
+                transactionRepository.getAllTransactions()
+            ) { categories, _ -> categories }.collect { categories ->
                 val spending = categories.mapNotNull { cat ->
-                    val flow = transactionRepository.getSpendingByCategory(cat.id, start, end)
-                    var amount = 0.0
-                    flow.collect { amount = it ?: 0.0 }
+                    val amount = transactionRepository.getSpendingByCategory(cat.id, start, end).first() ?: 0.0
                     if (amount != 0.0) CategorySpending(cat, amount) else null
                 }
                 _uiState.value = _uiState.value.copy(categorySpending = spending)
